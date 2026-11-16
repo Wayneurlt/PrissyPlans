@@ -1,0 +1,33 @@
+# Nuxt
+.nuxt
+.output
+.data
+.nitro
+.cache
+dist
+
+# Node
+node_modules
+*.log
+npm-debug.log*
+
+# Env
+.env
+.env.*
+!.env.example
+
+# Prisma
+/prisma/generated
+/prisma/dev.db*
+
+# Tests
+/test-results
+/playwright-report
+/playwright/.cache
+
+# OS / editors
+.DS_Store
+Thumbs.db
+.idea
+.vscode/*
+!.vscode/extensions.json
