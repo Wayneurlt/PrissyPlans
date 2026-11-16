@@ -1,0 +1,12 @@
+# Never upload local secrets or build artefacts to Vercel
+.env
+.env.*
+!.env.example
+node_modules
+.output
+.nuxt
+.data
+prisma/generated
+test-results
+playwright-report
+scripts/dev
