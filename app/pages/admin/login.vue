@@ -44,22 +44,22 @@ async function submit() {
 </script>
 
 <template>
-  <div class="grid min-h-screen lg:grid-cols-2">
+  <div class="grid min-h-dvh lg:h-dvh lg:grid-cols-2">
     <div class="relative hidden overflow-hidden bg-wine lg:block grain">
-      <AppImage placeholder="heroAbout" sizes="50vw" img-class="opacity-40" />
+      <AppImage placeholder="heroAbout" sizes="50vw" class="absolute inset-0" img-class="opacity-40" />
       <div class="absolute inset-0 flex flex-col justify-between p-12 text-champagne">
         <AppLogo variant="cream" class="h-20 w-auto self-start" />
         <p class="max-w-sm font-serif text-3xl font-light">Every detail, beautifully managed.</p>
       </div>
     </div>
-    <main class="flex items-center justify-center bg-cream px-6 py-16">
-      <div class="w-full max-w-sm">
-        <AppLogo variant="wine" class="mb-10 h-16 w-auto lg:hidden" />
+    <main class="flex bg-cream px-6 py-8 sm:py-16 lg:overflow-y-auto">
+      <div class="m-auto w-full max-w-sm">
+        <AppLogo variant="wine" class="mb-6 h-14 w-auto sm:mb-10 sm:h-16 lg:hidden" />
         <p class="eyebrow mb-3">Studio dashboard</p>
         <h1 class="font-serif text-4xl font-light text-charcoal">Sign in</h1>
         <p class="mt-2 text-sm text-ink-muted">For Prissy Plans Events administrators only.</p>
 
-        <form novalidate class="mt-10 space-y-5" @submit.prevent="submit">
+        <form novalidate class="mt-8 space-y-5 sm:mt-10" @submit.prevent="submit">
           <div v-if="formError" class="flex items-start gap-2 rounded-md border border-danger/30 bg-danger/5 p-3 text-sm text-danger" role="alert">
             <AppIcon name="alert" :size="16" class="mt-0.5 shrink-0" /> {{ formError }}
           </div>
