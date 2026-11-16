@@ -1,0 +1,277 @@
+@import "tailwindcss";
+
+/* ---------------------------------------------------------------------------
+   Design tokens — Prissy Plans Events
+   Palette blends the brief (blush / dusty rose / mocha / charcoal) with the
+   logo's deep wine background and champagne lettering.
+--------------------------------------------------------------------------- */
+@theme {
+  --color-cream: #f6f1e8;
+  --color-cream-deep: #efe7da;
+  --color-blush: #f7ede8;
+  --color-rose: #e5c6b8;
+  --color-rose-deep: #d2a897;
+  --color-mocha: #9b725e;
+  --color-mocha-deep: #7a5747;
+  --color-charcoal: #292321;
+  --color-ink: #1c1817;
+  --color-ink-muted: #6e615c;
+  --color-wine: #3b0019;
+  --color-wine-deep: #26000f;
+  --color-wine-soft: #5a1a36;
+  --color-champagne: #ece7c5;
+  --color-gold: #c9a96e;
+  --color-whatsapp: #25d366;
+  --color-success: #2f7a4f;
+  --color-danger: #a8323e;
+  --color-warning: #b7791f;
+
+  --font-serif: "Cormorant Garamond", "Times New Roman", Georgia, serif;
+  --font-sans: "DM Sans", "Segoe UI", system-ui, sans-serif;
+  --font-label: "Josefin Sans", "DM Sans", system-ui, sans-serif;
+
+  --text-display: clamp(2.375rem, 5vw, 4.5rem);
+  --text-display--line-height: 1.05;
+  --text-h1: clamp(2.125rem, 4.2vw, 3.75rem);
+  --text-h1--line-height: 1.08;
+  --text-h2: clamp(1.875rem, 3.2vw, 2.875rem);
+  --text-h2--line-height: 1.12;
+  --text-h3: clamp(1.375rem, 2vw, 1.75rem);
+  --text-h3--line-height: 1.15;
+
+  --ease-luxe: cubic-bezier(0.22, 1, 0.36, 1);
+  --shadow-soft: 0 24px 60px -30px rgb(41 35 33 / 0.35);
+}
+
+/* ---------------------------------------------------------------------------
+   Base
+--------------------------------------------------------------------------- */
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+
+  body {
+    @apply bg-cream text-charcoal font-sans antialiased;
+    overflow-x: clip;
+    font-feature-settings: "kern", "liga", "ss01";
+    /* Cormorant defaults to old-style figures where 1 and 0 read as I and O. */
+    font-variant-numeric: lining-nums;
+    text-rendering: optimizeLegibility;
+  }
+
+  ::selection {
+    background: var(--color-rose);
+    color: var(--color-wine);
+  }
+
+  h1, h2, h3, h4 {
+    @apply font-serif font-medium tracking-[-0.01em] text-balance;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-mocha);
+    outline-offset: 3px;
+  }
+
+  img {
+    @apply block max-w-full;
+  }
+
+  button {
+    cursor: pointer;
+  }
+}
+
+/* Base button utilities (registered with @utility so other classes can @apply them) */
+@utility btn {
+  @apply inline-flex items-center justify-center gap-3 font-label text-[0.72rem] uppercase tracking-[0.26em] px-7 py-4 min-h-12 transition-all duration-300 ease-luxe select-none;
+}
+@utility admin-btn {
+  @apply inline-flex items-center justify-center gap-2 rounded-md px-4 py-2.5 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-60;
+}
+
+/* ---------------------------------------------------------------------------
+   Components
+--------------------------------------------------------------------------- */
+@layer components {
+  .container-x {
+    @apply mx-auto w-full max-w-[1440px] px-5 sm:px-8 lg:px-12 xl:px-16;
+  }
+
+  .eyebrow {
+    @apply font-label text-[0.68rem] font-normal uppercase tracking-[0.32em] text-mocha;
+  }
+
+  .eyebrow-light {
+    @apply font-label text-[0.68rem] font-normal uppercase tracking-[0.32em] text-champagne/80;
+  }
+
+  .lede {
+    @apply text-lg leading-relaxed text-ink-muted sm:text-xl;
+  }
+
+  .prose-site {
+    @apply text-[1.05rem] leading-[1.8] text-charcoal/85;
+  }
+  .prose-site p + p {
+    @apply mt-5;
+  }
+
+  .btn-primary {
+    @apply btn bg-wine text-champagne hover:bg-wine-deep;
+  }
+  .btn-light {
+    @apply btn bg-champagne text-wine hover:bg-cream;
+  }
+  .btn-outline {
+    @apply btn border border-charcoal/30 text-charcoal hover:border-charcoal hover:bg-charcoal hover:text-cream;
+  }
+  .btn-outline-light {
+    @apply btn border border-champagne/50 text-champagne hover:border-champagne hover:bg-champagne hover:text-wine;
+  }
+  .btn-whatsapp {
+    @apply btn bg-whatsapp text-white hover:bg-[#1ebe5b];
+  }
+  .btn-ghost {
+    @apply btn px-0 text-charcoal hover:text-wine;
+  }
+  .btn[disabled],
+  .btn[aria-disabled="true"] {
+    @apply cursor-not-allowed opacity-60;
+  }
+
+  .link-underline {
+    @apply relative inline-block;
+    background-image: linear-gradient(currentColor, currentColor);
+    background-repeat: no-repeat;
+    background-position: 0 100%;
+    background-size: 100% 1px;
+    transition: background-size 0.4s var(--ease-luxe);
+  }
+  .link-underline:hover {
+    background-size: 0 1px;
+    background-position: 100% 100%;
+  }
+
+  .hairline {
+    @apply h-px w-full bg-charcoal/15;
+  }
+
+  .field-label {
+    @apply mb-2 block font-label text-[0.68rem] uppercase tracking-[0.24em] text-charcoal/70;
+  }
+  .field-input {
+    @apply w-full border-0 border-b border-charcoal/30 bg-transparent px-0 py-3 text-base text-charcoal
+      placeholder:text-charcoal/35 focus:border-wine focus:ring-0 focus:outline-none transition-colors duration-300;
+  }
+  .field-input[aria-invalid="true"] {
+    @apply border-danger;
+  }
+  .field-error {
+    @apply mt-2 text-sm text-danger;
+  }
+  .field-help {
+    @apply mt-2 text-sm text-ink-muted;
+  }
+
+  .admin-input {
+    @apply w-full rounded-md border border-charcoal/15 bg-white px-3.5 py-2.5 text-[0.95rem] text-charcoal
+      placeholder:text-charcoal/35 focus:border-wine focus:outline-none focus:ring-2 focus:ring-wine/15 transition;
+  }
+  .admin-input[aria-invalid="true"] {
+    @apply border-danger;
+  }
+  .admin-label {
+    @apply mb-1.5 block text-sm font-medium text-charcoal/80;
+  }
+  .admin-card {
+    @apply rounded-lg border border-charcoal/10 bg-white;
+  }
+  .admin-btn-primary {
+    @apply admin-btn bg-wine text-champagne hover:bg-wine-deep;
+  }
+  .admin-btn-secondary {
+    @apply admin-btn border border-charcoal/15 bg-white text-charcoal hover:bg-cream;
+  }
+  .admin-btn-danger {
+    @apply admin-btn border border-danger/30 text-danger hover:bg-danger hover:text-white;
+  }
+
+  .image-zoom {
+    @apply overflow-hidden;
+  }
+  .image-zoom img {
+    @apply h-full w-full object-cover transition-transform duration-[1200ms] ease-luxe;
+  }
+  .image-zoom:hover img {
+    transform: scale(1.04);
+  }
+
+  .reveal {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  .reveal.is-visible {
+    opacity: 1;
+    transform: none;
+    transition: opacity 0.9s var(--ease-luxe), transform 0.9s var(--ease-luxe);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .reveal {
+      opacity: 1;
+      transform: none;
+    }
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Page transitions
+--------------------------------------------------------------------------- */
+.page-enter-active,
+.page-leave-active {
+  transition: opacity 0.35s var(--ease-luxe);
+}
+.page-enter-from,
+.page-leave-to {
+  opacity: 0;
+}
+
+/* Grain texture for dark editorial sections */
+.grain::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.07;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* Homepage hero entrance: CSS-only so the text is never left hidden if a script fails.
+   The global reduced-motion rule shortens these animations to an instant fade. */
+@keyframes hero-in {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: none; }
+}
+.hero-intro [data-hero] {
+  animation: hero-in 1s var(--ease-luxe) both;
+}
+.hero-intro [data-hero]:nth-child(2) { animation-delay: 0.12s; }
+.hero-intro [data-hero]:nth-child(3) { animation-delay: 0.24s; }
+.hero-intro [data-hero]:nth-child(4) { animation-delay: 0.36s; }
+.hero-intro [data-hero]:nth-child(5) { animation-delay: 0.48s; }
