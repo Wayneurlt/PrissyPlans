@@ -1,0 +1,399 @@
+// Prissy Plans Events — PostgreSQL schema
+// `npm run db:migrate` creates/applies migrations, `npm run db:seed` seeds defaults.
+
+generator client {
+  provider = "prisma-client"
+  output   = "./generated"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ---------------------------------------------------------------------------
+// Enums
+// ---------------------------------------------------------------------------
+
+enum AdminRole {
+  OWNER
+  ADMIN
+}
+
+enum EnquiryStatus {
+  NEW
+  CONTACTED
+  CONSULTATION_SCHEDULED
+  PROPOSAL_SENT
+  CONFIRMED
+  COMPLETED
+  DECLINED
+}
+
+enum ContactMethod {
+  WHATSAPP
+  PHONE
+  EMAIL
+}
+
+enum NoteType {
+  NOTE
+  FOLLOW_UP
+  STATUS_CHANGE
+}
+
+enum MediaProvider {
+  CLOUDINARY
+  EXTERNAL
+}
+
+enum MediaKind {
+  IMAGE
+  VIDEO
+}
+
+enum SettingType {
+  TEXT
+  TEXTAREA
+  URL
+  PHONE
+  EMAIL
+  JSON
+  BOOLEAN
+}
+
+// ---------------------------------------------------------------------------
+// Admin
+// ---------------------------------------------------------------------------
+
+model AdminUser {
+  id           String    @id @default(cuid())
+  email        String    @unique
+  name         String
+  passwordHash String
+  role         AdminRole @default(ADMIN)
+  isActive     Boolean   @default(true)
+  lastLoginAt  DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  notes         EnquiryNote[]
+  uploadedMedia MediaAsset[]
+  activity      ActivityLog[]
+}
+
+model ActivityLog {
+  id         String     @id @default(cuid())
+  actorId    String?
+  actor      AdminUser? @relation(fields: [actorId], references: [id], onDelete: SetNull)
+  action     String
+  entityType String
+  entityId   String?
+  summary    String
+  createdAt  DateTime   @default(now())
+
+  @@index([createdAt])
+  @@index([entityType, entityId])
+}
+
+// ---------------------------------------------------------------------------
+// Media
+// ---------------------------------------------------------------------------
+
+model MediaAsset {
+  id            String        @id @default(cuid())
+  provider      MediaProvider @default(CLOUDINARY)
+  kind          MediaKind     @default(IMAGE)
+  publicId      String?       @unique
+  url           String
+  width         Int?
+  height        Int?
+  format        String?
+  bytes         Int?
+  altText       String?
+  folder        String?
+  /// True for temporary stock imagery seeded for layout preview. Replace via the admin dashboard.
+  isPlaceholder Boolean       @default(false)
+  uploadedById  String?
+  uploadedBy    AdminUser?    @relation(fields: [uploadedById], references: [id], onDelete: SetNull)
+  createdAt     DateTime      @default(now())
+
+  serviceCovers    Service[]          @relation("ServiceCover")
+  serviceImages    ServiceImage[]
+  portfolioCovers  PortfolioProject[] @relation("PortfolioCover")
+  portfolioImages  PortfolioImage[]
+  enquiryImages    EnquiryImage[]
+  testimonialPhoto Testimonial[]
+}
+
+// ---------------------------------------------------------------------------
+// Services
+// ---------------------------------------------------------------------------
+
+model ServiceCategory {
+  id          String    @id @default(cuid())
+  name        String
+  slug        String    @unique
+  description String?
+  sortOrder   Int       @default(0)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  services    Service[]
+}
+
+model Service {
+  id             String           @id @default(cuid())
+  name           String
+  slug           String           @unique
+  tagline        String?
+  summary        String
+  description    String
+  includes       String[]         @default([])
+  suitableFor    String[]         @default([])
+  categoryId     String?
+  category       ServiceCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  coverMediaId   String?
+  coverMedia     MediaAsset?      @relation("ServiceCover", fields: [coverMediaId], references: [id], onDelete: SetNull)
+  images         ServiceImage[]
+  isPublished    Boolean          @default(false)
+  isFeatured     Boolean          @default(false)
+  sortOrder      Int              @default(0)
+  seoTitle       String?
+  seoDescription String?
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  enquiryServices EnquiryService[]
+
+  @@index([isPublished, sortOrder])
+}
+
+model ServiceImage {
+  id        String     @id @default(cuid())
+  serviceId String
+  service   Service    @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  mediaId   String
+  media     MediaAsset @relation(fields: [mediaId], references: [id], onDelete: Cascade)
+  sortOrder Int        @default(0)
+
+  @@unique([serviceId, mediaId])
+  @@index([serviceId, sortOrder])
+}
+
+// ---------------------------------------------------------------------------
+// Event categories (shared by the portfolio filter and the enquiry form)
+// ---------------------------------------------------------------------------
+
+model EventCategory {
+  id              String   @id @default(cuid())
+  name            String
+  slug            String   @unique
+  description     String?
+  sortOrder       Int      @default(0)
+  showInPortfolio Boolean  @default(true)
+  showInEnquiry   Boolean  @default(true)
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  projects  PortfolioProject[]
+  enquiries EventEnquiry[]
+}
+
+// ---------------------------------------------------------------------------
+// Portfolio
+// ---------------------------------------------------------------------------
+
+model PortfolioProject {
+  id             String           @id @default(cuid())
+  title          String
+  slug           String           @unique
+  summary        String?
+  description    String?
+  categoryId     String?
+  category       EventCategory?   @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  eventDate      DateTime?
+  location       String?
+  venue          String?
+  guestCount     Int?
+  coverMediaId   String?
+  coverMedia     MediaAsset?      @relation("PortfolioCover", fields: [coverMediaId], references: [id], onDelete: SetNull)
+  images         PortfolioImage[]
+  isFeatured     Boolean          @default(false)
+  isPublished    Boolean          @default(false)
+  /// True for seeded layout-preview projects that use placeholder imagery. Labelled publicly, never shown as real work.
+  isSample       Boolean          @default(false)
+  sortOrder      Int              @default(0)
+  seoTitle       String?
+  seoDescription String?
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  @@index([isPublished, isFeatured, sortOrder])
+  @@index([categoryId])
+}
+
+model PortfolioImage {
+  id        String           @id @default(cuid())
+  projectId String
+  project   PortfolioProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  mediaId   String
+  media     MediaAsset       @relation(fields: [mediaId], references: [id], onDelete: Cascade)
+  caption   String?
+  sortOrder Int              @default(0)
+
+  @@unique([projectId, mediaId])
+  @@index([projectId, sortOrder])
+}
+
+// ---------------------------------------------------------------------------
+// Enquiries
+// ---------------------------------------------------------------------------
+
+model EventEnquiry {
+  id                 String         @id @default(cuid())
+  reference          String         @unique
+  /// Client-generated idempotency key. A repeat submission with the same key returns the original enquiry.
+  submissionKey      String         @unique
+  status             EnquiryStatus  @default(NEW)
+
+  // Step 1 — event type (label is a snapshot; the category link is optional)
+  eventTypeLabel     String
+  eventTypeOther     String?
+  eventCategoryId    String?
+  eventCategory      EventCategory? @relation(fields: [eventCategoryId], references: [id], onDelete: SetNull)
+
+  // Step 2 — details
+  eventDate          DateTime?
+  dateIsFlexible     Boolean        @default(false)
+  location           String?
+  venue              String?
+  venueNotConfirmed  Boolean        @default(false)
+  guestCount         Int?
+
+  // Step 3 — services are stored in EnquiryService
+
+  // Step 4 — budget (snapshot of the configured range)
+  budgetKey          String?
+  budgetLabel        String?
+
+  // Step 5 — vision
+  theme              String?
+  colours            String?
+  vision             String
+  additionalRequests String?
+
+  // Step 6 — contact
+  fullName           String
+  phone              String
+  email              String
+  preferredContact   ContactMethod  @default(WHATSAPP)
+
+  // Meta
+  sourcePage         String?
+  referrer           String?
+  ipHash             String?
+  userAgent          String?
+  adminNotifiedAt    DateTime?
+  clientNotifiedAt   DateTime?
+  contactedAt        DateTime?
+  followUpAt         DateTime?
+  lastActivityAt     DateTime       @default(now())
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @updatedAt
+
+  services EnquiryService[]
+  notes    EnquiryNote[]
+  images   EnquiryImage[]
+
+  @@index([status, createdAt])
+  @@index([eventTypeLabel])
+  @@index([email])
+  @@index([eventDate])
+}
+
+model EnquiryService {
+  id        String       @id @default(cuid())
+  enquiryId String
+  enquiry   EventEnquiry @relation(fields: [enquiryId], references: [id], onDelete: Cascade)
+  /// Snapshot of the chosen option at submission time.
+  key       String
+  label     String
+  serviceId String?
+  service   Service?     @relation(fields: [serviceId], references: [id], onDelete: SetNull)
+
+  @@index([enquiryId])
+}
+
+model EnquiryNote {
+  id         String       @id @default(cuid())
+  enquiryId  String
+  enquiry    EventEnquiry @relation(fields: [enquiryId], references: [id], onDelete: Cascade)
+  authorId   String?
+  author     AdminUser?   @relation(fields: [authorId], references: [id], onDelete: SetNull)
+  type       NoteType     @default(NOTE)
+  body       String
+  followUpAt DateTime?
+  createdAt  DateTime     @default(now())
+
+  @@index([enquiryId, createdAt])
+}
+
+model EnquiryImage {
+  id        String       @id @default(cuid())
+  enquiryId String
+  enquiry   EventEnquiry @relation(fields: [enquiryId], references: [id], onDelete: Cascade)
+  mediaId   String
+  media     MediaAsset   @relation(fields: [mediaId], references: [id], onDelete: Cascade)
+  createdAt DateTime     @default(now())
+
+  @@unique([enquiryId, mediaId])
+}
+
+// ---------------------------------------------------------------------------
+// Testimonials
+// ---------------------------------------------------------------------------
+
+model Testimonial {
+  id           String      @id @default(cuid())
+  clientName   String
+  eventType    String?
+  quote        String
+  rating       Int?
+  eventDate    DateTime?
+  photoMediaId String?
+  photoMedia   MediaAsset? @relation(fields: [photoMediaId], references: [id], onDelete: SetNull)
+  isPublished  Boolean     @default(false)
+  sortOrder    Int         @default(0)
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  @@index([isPublished, sortOrder])
+}
+
+// ---------------------------------------------------------------------------
+// Website settings (key/value, editable from the admin dashboard)
+// ---------------------------------------------------------------------------
+
+model WebsiteSetting {
+  id        String      @id @default(cuid())
+  key       String      @unique
+  group     String
+  label     String
+  type      SettingType @default(TEXT)
+  value     String
+  help      String?
+  sortOrder Int         @default(0)
+  updatedAt DateTime    @updatedAt
+
+  @@index([group, sortOrder])
+}
+
+// ---------------------------------------------------------------------------
+// Rate limiting (database-backed so it also works on serverless hosts)
+// ---------------------------------------------------------------------------
+
+model RateLimit {
+  key         String   @id
+  count       Int      @default(0)
+  windowStart DateTime @default(now())
+}
